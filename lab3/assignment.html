@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lab 3: Linear Forward Models and MAP Reconstruction</title>
+<style>
+  html { background: #faf8f4; }
+  body { margin: 0; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+         background: #faf8f4; color: #222; line-height: 1.5; }
+  .band { background: #cfb991; border-bottom: 4px solid #000;
+          padding: 24px 16px 18px 16px; text-align: center; }
+  .band h2 { margin: 0 0 6px 0; font-size: 1.0em; font-weight: normal; color: #3d3324; }
+  .band h1 { margin: 0; font-size: 1.5em; color: #000; }
+  .band a { color: #000; }
+  .container { max-width: 760px; margin: 28px auto; padding: 0 16px; }
+  .section { border: 2px solid #cfb991; border-radius: 14px;
+             background: #f4efe3; padding: 18px 16px 2px 16px; margin-bottom: 22px; }
+  .section > h2 { margin: 0 0 16px 8px; font-size: 1.3em; color: #3d3324; }
+  .card { background: #fff; border: 1px solid #e3dccb; border-radius: 10px;
+          padding: 20px 26px; margin-bottom: 22px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+  .card h3 { margin-top: 0; color: #000; border-bottom: 2px solid #cfb991; padding-bottom: 6px; }
+  a { color: #8a6d1d; text-decoration: none; }
+  a:hover { color: #000; text-decoration: underline; }
+  ul, ol { margin: 8px 0; }
+  li { padding: 3px 0; }
+  code { background: #f4efe3; border: 1px solid #e3dccb; border-radius: 4px;
+         padding: 1px 5px; font-size: 0.95em; }
+  pre { background: #f4efe3; border: 1px solid #e3dccb; border-radius: 6px;
+        padding: 12px 14px; overflow-x: auto; font-size: 0.92em; line-height: 1.4; }
+  .tip { background: #f6f3ea; border-left: 4px solid #cfb991; padding: 10px 14px;
+         margin: 12px 0; font-size: 0.97em; }
+  .codeblock { position: relative; }
+  .codeblock pre { padding-right: 76px; }
+  .copy { position: absolute; top: 8px; right: 8px; background: #cfb991; color: #000;
+          border: 1px solid #b9ac8e; border-radius: 4px; padding: 2px 10px;
+          font-size: 0.8em; font-family: inherit; cursor: pointer; }
+  .copy:hover { background: #b9ac8e; }
+  .kernelfig { text-align: center; margin: 16px 0 4px 0; }
+  .kernelfig img { border: 1px solid #e3dccb; }
+  .kernelfig .caption { font-size: 0.9em; color: #555; margin-top: 6px; }
+  table.kernel { border-collapse: collapse; margin: 12px auto; }
+  table.kernel td { border: 1px solid #b9ac8e; padding: 6px 14px; text-align: center;
+                    font-family: "Times New Roman", serif; }
+  .source { font-size: 0.9em; color: #5b5b5b; margin: 4px 0 0 0; }
+  details.module { border: 2px solid #cfb991; border-radius: 14px; background: #f4efe3;
+                   margin-bottom: 22px; }
+  details.module > summary { cursor: pointer; list-style: none; padding: 16px 18px;
+                             font-size: 1.2em; font-weight: bold; color: #3d3324; }
+  details.module > summary::-webkit-details-marker { display: none; }
+  details.module > summary::before { content: "\25B8"; color: #8a6d1d; margin-right: 10px; }
+  details.module[open] > summary::before { content: "\25BE"; }
+  details.module > summary:hover { color: #000; }
+  details.module .modulebody { padding: 0 16px 2px 16px; }
+  summary .note { display: block; font-weight: normal; font-size: 0.78em;
+                  color: #6b5c42; margin: 4px 0 0 26px; }
+  .allbtn { display: block; margin: 0 0 16px auto; background: #f4efe3; color: #3d3324;
+            border: 1px solid #cfb991; border-radius: 4px; padding: 3px 12px;
+            font-size: 0.85em; font-family: inherit; cursor: pointer; }
+  .allbtn:hover { background: #e8e0cd; }
+  .handin { border: 1px solid #cfb991; border-left: 7px solid #cfb991;
+            border-radius: 8px; background: #fffdf5;
+            padding: 12px 16px 4px 16px; margin: 18px 0; }
+  .handin .tag { display: inline-block; background: #cfb991; color: #000;
+                 border-radius: 4px; padding: 1px 9px; font-size: 0.82em;
+                 font-weight: bold; letter-spacing: 0.4px; }
+  .handin p:first-of-type { margin-top: 8px; }
+  ol.handin-list { list-style: none; padding-left: 0; margin: 10px 0; }
+  ol.handin-list li { position: relative; padding: 4px 0 4px 2.9em; }
+  ol.handin-list .dnum { position: absolute; left: 0; width: 2.9em;
+                         font-weight: bold; color: #8a6d1d; }
+  .band .nav { margin: 10px 0 0 0; font-size: 0.9em; }
+  .band .nav a { text-decoration: underline; }
+</style>
+<script>
+  MathJax = { tex: { inlineMath: [['\\(', '\\)']], tags: 'ams' } };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+</head>
+<body>
+
+<div class="band">
+  <h2>ECE 60141: Foundations of Computational Imaging</h2>
+  <h1>Lab 3: Linear Forward Models and MAP Reconstruction</h1>
+  <p class="nav">
+    <a href="https://engineering.purdue.edu/~bouman/ece60141/">ECE 60141 course page</a> &middot;
+    <a href="../../index.html">Laboratory index</a>
+  </p>
+</div>
+
+<div class="container">
+
+<button class="allbtn" onclick="toggleAll(this)">Open all</button>
+
+<details class="module">
+  <summary>Overview
+    <span class="note">What the lab is about, the data, and the ground rules.</span>
+  </summary>
+  <div class="modulebody">
+
+  <div class="card">
+    <h3>What This Lab Is About</h3>
+    <p><b>Due: Friday, Sept. 18.</b></p>
+    <p>
+      In this lab you compute MAP estimates of an image from noisy data,
+      and then from blurred noisy data. The prior model is a Gaussian
+      Markov random field and the optimizer is gradient descent. The
+      background is Chapter 5 of <i>Foundations of Computational
+      Imaging</i>, on MAP estimation with Gaussian priors, and Chapter 4,
+      on the GMRF prior. The notation here matches the book.
+    </p>
+    <p>
+      You will not hand-write the implementation. This page states the
+      model, the math, and the exact signature of every function you need.
+      Your job is to direct Claude, or another agentic AI, to write the
+      PyTorch code from that specification, then run the experiments
+      yourself, produce the required images and numbers, and explain what
+      you see. You are graded on the specification you give, the checks you
+      run to confirm the code is right, and your reading of the results.
+    </p>
+    <p>
+      The work is in two modules. Open them below.
+    </p>
+  </div>
+
+  <div class="card">
+    <h3>The Data</h3>
+    <p>Download both files before you start.</p>
+    <ul>
+      <li>
+        <a href="../resources/kodim23.pgm" download><b>kodim23.pgm</b></a>,
+        a 768 by 512 grayscale image, 384 KB. This is the same file you made
+        in Lab 2. Everyone uses this copy, so that everyone's numbers can be
+        compared.
+        <p class="source">
+          Source: image 23 of the Kodak Lossless True Color Image Suite,
+          released for unrestricted use. Converted to grayscale by the same
+          recipe you used in Lab 2.
+        </p>
+      </li>
+      <li>
+        <a href="../resources/levin09_kernels.zip" download><b>levin09_kernels.zip</b></a>,
+        all eight camera shake blur kernels, 14 KB. It unpacks into a folder
+        named <code>levin09_kernels</code> holding
+        <code>levin09_kernel1.txt</code> through
+        <code>levin09_kernel8.txt</code>. This lab uses kernel 1.
+        <p class="source">
+          Source: A. Levin, Y. Weiss, F. Durand, and W. T. Freeman,
+          <a href="https://webee.technion.ac.il/people/anat.levin/papers/deconvLevinEtalCVPR09.pdf">"Understanding
+          and Evaluating Blind Deconvolution Algorithms,"</a> IEEE CVPR
+          2009. The kernels were measured from real camera shake, and they
+          are the standard test set for image deblurring.
+        </p>
+      </li>
+    </ul>
+    <p>
+      From the shell, which is easier than saving from the browser:
+    </p>
+    <div class="codeblock">
+      <button class="copy" onclick="copyCode(this)">Copy</button>
+<pre>wget https://cabouman.github.io/grad_labs/labs/resources/kodim23.pgm
+wget https://cabouman.github.io/grad_labs/labs/resources/levin09_kernels.zip
+unzip levin09_kernels.zip</pre>
+    </div>
+    <p>
+      A kernel file is plain text, with one row of the kernel per line, so
+      you can also just look at one:
+      <a href="../resources/kernels/levin09_kernel1.txt">levin09_kernel1.txt</a>
+      opens in the browser.
+    </p>
+  </div>
+
+  <div class="card">
+    <h3>Ground Rules</h3>
+    <ul>
+      <li>All code in <b>PyTorch</b>, in a single file named
+          <code>lab3.py</code>. Use the <code>labs</code> conda environment
+          you built in Lab 2.</li>
+      <li><code>lab3.py</code> holds functions and nothing else. Run your
+          experiments from a separate script that imports it.</li>
+      <li>Every function has the exact signature given on this page, and a
+          docstring that says what it does, what its inputs are, and what
+          it returns. Keep the docstrings short.</li>
+      <li>Read the image and scale it to the range \([0,1]\) by dividing by
+          255. Do all arithmetic in <code>float64</code>. It keeps the cost
+          curves clean.</li>
+      <li>No <code>for</code> loop over pixels anywhere. Every operation is
+          a whole-array operation.</li>
+      <li>Fix the random seed for the noise so your runs are reproducible,
+          and report the seed.</li>
+    </ul>
+    <div class="tip">
+      <b>How to direct the AI.</b> Give it the equations from this page,
+      the exact array shapes, the boundary conditions, and the signatures
+      of the functions you want. Then run the checks in Step 3 and Step 6
+      <em>before</em> you look at any image. Code that produces a plausible
+      picture from a wrong gradient is the most common failure in this lab.
+    </div>
+  </div>
+
+  </div>
+</details>
+
+<details class="module">
+  <summary>Module 1: The Forward Model and Its Adjoint
+    <span class="note">Steps 1 to 3. Build \(A\) and \(A^t\), and prove they are right.</span>
+  </summary>
+  <div class="modulebody">
+
+  <div class="card">
+    <h3>Step 1: The Measurement Model</h3>
+    <p>
+      Let \( x \in \mathbb{R}^N \) be the unknown image, written as a
+      column vector of its \(N\) pixels. The measurement is
+    </p>
+    $$
+    y = A x + w \ , \qquad w \sim N(0, \sigma_w^2 I) \ ,
+    \tag{1}
+    $$
+    <p>
+      where \(A\) is a known linear operator and \(\sigma_w\) is the noise
+      standard deviation. This lab uses two choices of \(A\). One is a
+      camera shake blur, which gives deconvolution. The other is the
+      identity, which gives denoising. Step 2 writes both with the same
+      function.
+    </p>
+    <p>
+      Recovering \(x\) from \(y\) means, in part, making \(Ax\) agree with
+      \(y\). Every method in this lab does that by descending the squared
+      error \( \| y - A x \|^2 \), whose gradient is
+      \( -2 A^t (y - A x) \). So you need \(A^t\) as well as \(A\), and
+      that is what this module builds. Module 2 adds the prior model and
+      assembles the full cost.
+    </p>
+  </div>
+
+  <div class="card">
+    <h3>Step 2: The Forward Model</h3>
+    <p>
+      The operator \(A\) is a blur, and blurring is convolution. Writing
+      \(s\) and \(r\) for 2-D pixel positions and \(a\) for the blur
+      kernel,
+    </p>
+    $$
+    (A x)_s = \sum_r a_r \, x_{s-r} \ .
+    \tag{2}
+    $$
+    <p>
+      Use <b>circular boundaries</b>, so that an index running off one edge
+      of the image wraps around to the other. That choice keeps the blurred
+      image free of a dark border, and it makes the adjoint in Step 3
+      exact.
+    </p>
+
+    <p>
+      The kernel \(a\) is a measurement of real camera shake. Someone
+      photographed a scene while holding the camera in their hands, and the
+      path the camera traveled during the exposure was recorded. That path
+      is the kernel. Here is the one you will use:
+    </p>
+    <div class="kernelfig">
+      <img src="kernel1.svg" width="190" height="190"
+           alt="A 19 by 19 camera shake kernel. A thin dark trail runs from
+                the upper right to the lower left, with several sharp turns.">
+      <div class="caption">
+        <code>levin09_kernel1.txt</code>, 19 by 19. Dark is large. The
+        picture uses a gamma of 0.45 so that the faint part of the trail is
+        visible.
+      </div>
+    </div>
+    <p>
+      The trail is the hand tremor. It is thin, because the camera was
+      somewhere along it at every instant, and it is uneven, because the
+      camera lingered at the turns. Nothing about it is symmetric, and
+      Step 3 turns that fact into a test of your code.
+    </p>
+
+    <p>
+      Copy these two readers into <code>lab3.py</code>. Reading files is
+      not the point of this lab.
+    </p>
+    <div class="codeblock">
+      <button class="copy" onclick="copyCode(this)">Copy</button>
+<pre>import numpy as np
+import torch
+import torch.nn.functional as F
+
+
+def load_pgm(path):
+    """Read a binary PGM image file.
+
+    path     path to a P5 PGM file
+    returns  (H, W) float64 tensor with values in [0, 1]
+    """
+    with open(path, "rb") as f:
+        assert f.readline().strip() == b"P5"
+        width, height = map(int, f.readline().split())
+        assert int(f.readline()) == 255
+        raw = np.frombuffer(f.read(), dtype=np.uint8).reshape(height, width)
+    return torch.tensor(raw / 255.0, dtype=torch.float64)
+
+
+def load_kernel(path):
+    """Read a blur kernel from a text file.
+
+    path     path to a kernel file, one row of the kernel per line
+    returns  (Ka, Kb) float64 tensor, nonnegative and summing to 1
+    """
+    return torch.tensor(np.loadtxt(path), dtype=torch.float64)</pre>
+    </div>
+
+    <p>Now write the forward model itself.</p>
+    <div class="codeblock">
+      <button class="copy" onclick="copyCode(this)">Copy</button>
+<pre>def forward(x, a):
+    """Apply the blur operator A of equation (2).
+
+    x        (H, W) float64 tensor, the image
+    a        (Ka, Kb) float64 tensor, the blur kernel, odd sized in both axes
+    returns  (H, W) float64 tensor, A x
+    """</pre>
+    </div>
+    <p>Three requirements.</p>
+    <ul>
+      <li>Circular boundaries, as stated above.</li>
+      <li>The output has the same shape as the input.</li>
+      <li>Built from <code>torch.nn.functional.conv2d</code>, with no loop
+          over pixels.</li>
+    </ul>
+
+    <div class="tip">
+      <b><code>conv2d</code> does not compute convolution.</b> It computes
+      correlation, which is equation (2) with \(a_r\) replaced by
+      \(a_{-r}\). To get (2) you must flip the kernel in both axes before
+      you pass it to <code>conv2d</code>. If the kernel were symmetric this
+      mistake would change nothing and you would never find out. A camera
+      shake kernel is not symmetric, so the mistake reverses the blur trail
+      end for end, and every result after it is wrong.
+    </div>
+
+    <p>
+      <b>Denoising uses the same function.</b> When \(A\) is the identity,
+      \(A\) is still a convolution: it is convolution with the 1 by 1
+      kernel whose only entry is 1.
+    </p>
+    <div class="codeblock">
+      <button class="copy" onclick="copyCode(this)">Copy</button>
+<pre>a_identity = torch.ones((1, 1), dtype=torch.float64)</pre>
+    </div>
+    <p>
+      So you write one forward model and use it for both halves of the lab.
+      Nothing later needs a special case for denoising.
+    </p>
+  </div>
+
+  <div class="card">
+    <h3>Step 3: The Adjoint</h3>
+    <p>
+      \(A^t\), the transpose of the blur operator, is defined by the
+      property
+    </p>
+    $$
+    \langle A x, v \rangle = \langle x, A^t v \rangle
+    \quad \mbox{for all } x \mbox{ and } v \ .
+    \tag{3}
+    $$
+    <p>
+      You will get \(A^t\) two ways, and then check that they agree.
+    </p>
+
+    <p><b>The short way: let PyTorch do it.</b></p>
+    <p>
+      Read (3) from left to right with \(v\) held fixed. The left side is a
+      linear function of \(x\), and the right side says that this function
+      is the inner product of \(x\) with \(A^t v\). The gradient of
+      \(\langle x, A^t v \rangle\) with respect to \(x\) is \(A^t v\). So
+      \(A^t v\) is the gradient of \(\langle A x, v \rangle\) with respect
+      to \(x\), and computing gradients is what PyTorch already does.
+    </p>
+    <div class="codeblock">
+      <button class="copy" onclick="copyCode(this)">Copy</button>
+<pre>def adjoint_autograd(v, a):
+    """Apply A^t, obtained from forward() by automatic differentiation.
+
+    v        (H, W) float64 tensor
+    a        (Ka, Kb) float64 tensor, the same kernel passed to forward
+    returns  (H, W) float64 tensor, A^t v
+    """
+    x = torch.zeros_like(v, requires_grad=True)
+    return torch.autograd.grad((forward(x, a) * v).sum(), x)[0]</pre>
+    </div>
+    <p>
+      That is the whole thing, and nothing in it is specific to
+      convolution. It gives the transpose of any linear forward model you
+      write in PyTorch, however complicated, without deriving anything.
+      Remember it. You will want it again later in this course.
+    </p>
+
+    <p><b>The direct way, which you also write.</b></p>
+    <p>
+      For circular convolution the transpose has a simple closed form. It
+      is correlation with the same kernel,
+    </p>
+    $$
+    (A^t v)_s = \sum_r a_r \, v_{s+r} \ ,
+    \tag{4}
+    $$
+    <p>
+      which is the sum in (2) with the sign of \(r\) reversed. In terms of
+      <code>conv2d</code> this is convenient. Since <code>conv2d</code>
+      computes correlation, <code>forward</code> flips the kernel and
+      <code>adjoint</code> does not.
+    </p>
+    <div class="codeblock">
+      <button class="copy" onclick="copyCode(this)">Copy</button>
+<pre>def adjoint(v, a):
+    """Apply the transpose operator A^t of equation (4).
+
+    v        (H, W) float64 tensor
+    a        (Ka, Kb) float64 tensor, the same kernel passed to forward
+    returns  (H, W) float64 tensor, A^t v
+    """</pre>
+    </div>
+
+    <p>
+      <b>Task 3a. Look at what the two operators do.</b> Load the image and
+      kernel 1, then compute \(Ax\), \(A^t x\), and their difference.
+      Display four images with the same gray scale over \([0,1]\): \(x\),
+      \(Ax\), \(A^t x\), and \(Ax - A^t x\). For the difference image, add
+      0.5 before you clip, so that zero shows as mid gray. Also print the
+      shape of the kernel and its sum.
+    </p>
+    <div class="handin" id="D1">
+      <span class="tag">HAND IN &middot; D1</span>
+      <p>
+        The four images \(x\), \(Ax\), \(A^t x\), and \(Ax - A^t x\), and
+        the shape and sum of the kernel. Add one sentence saying what the
+        difference image shows about \(A\) and \(A^t\).
+      </p>
+    </div>
+
+    <p>
+      <b>Task 3b. Check the code three ways.</b> Use kernel 1 throughout,
+      with random \(u\) and \(v\) from <code>torch.randn</code>.
+    </p>
+    <ol>
+      <li><b>The two adjoints agree.</b> The largest absolute difference
+          between <code>adjoint(v, a)</code> and
+          <code>adjoint_autograd(v, a)</code>. This should be at the level
+          of round-off.</li>
+      <li><b>The transpose property (3) holds.</b> Compare
+          \(\langle A u, v \rangle\) with \(\langle u, A^t v \rangle\) and
+          report the relative difference. This should also be at the level
+          of round-off.</li>
+      <li><b>The transpose is a different operator.</b> The largest
+          absolute difference between <code>forward(u, a)</code> and
+          <code>adjoint(u, a)</code>, next to the largest absolute value of
+          <code>forward(u, a)</code>. This one is <em>not</em> small, and
+          that is the point.</li>
+    </ol>
+    <div class="codeblock">
+      <button class="copy" onclick="copyCode(this)">Copy</button>
+<pre>torch.manual_seed(0)
+u = torch.randn(512, 768, dtype=torch.float64)
+v = torch.randn(512, 768, dtype=torch.float64)
+
+check1 = (adjoint(v, a) - adjoint_autograd(v, a)).abs().max()
+
+lhs = (forward(u, a) * v).sum()
+rhs = (u * adjoint(v, a)).sum()
+check2 = (lhs - rhs).abs() / lhs.abs()
+
+check3 = (forward(u, a) - adjoint(u, a)).abs().max()</pre>
+    </div>
+    <div class="tip">
+      <b>Reading the checks.</b> If check 2 passes but check 1 fails, your
+      closed form (4) is wrong and autograd is right. If check 2 fails for
+      both, <code>forward</code> and <code>adjoint</code> disagree about
+      the boundary condition. If check 3 comes out near zero, you did not
+      flip the kernel in <code>forward</code>.
+    </div>
+    <div class="handin" id="D2">
+      <span class="tag">HAND IN &middot; D2</span>
+      <p>
+        The three numbers from Task 3b, and one sentence saying what check
+        3 would report if the blur kernel were symmetric.
+      </p>
+    </div>
+
+    <p>
+      <b>Task 3c. You never built the matrix.</b> \(A\) is a linear
+      operator on \(N = 768 \times 512\) pixels, so as a matrix it is
+      \(N \times N\). Work out three numbers, showing the arithmetic:
+    </p>
+    <ol>
+      <li>The memory to store \(A\) as a dense matrix of
+          <code>float64</code>.</li>
+      <li>The memory to store \(A\) as a sparse matrix, keeping only the
+          nonzero entries. Count the nonzero entries of the kernel to get
+          the number of nonzeros per row, and allow 8 bytes for each value
+          and 4 bytes for each column index.</li>
+      <li>The memory your <code>forward</code> function actually uses to
+          represent \(A\), which is the kernel itself.</li>
+    </ol>
+    <div class="handin" id="D3">
+      <span class="tag">HAND IN &middot; D3</span>
+      <p>
+        The three memory figures with the arithmetic shown, and two
+        sentences: what these numbers say about implementing \(A\) and
+        \(A^t\) as matrix multiplications, and why \(A^t\) costs no extra
+        storage at all.
+      </p>
+    </div>
+  </div>
+
+  </div>
+</details>
+
+<details class="module">
+  <summary>Module 2: MAP Reconstruction
+    <span class="note">Steps 4 to 9. Add the prior, minimize the cost, and read the results.</span>
+  </summary>
+  <div class="modulebody">
+
+  <div class="card">
+    <h3>Step 4: The Prior Model</h3>
+    <p>
+      The prior model for \(x\) is a <b>pairwise GMRF</b>. Let
+      \(\partial s\) be the neighbors of pixel \(s\), and let
+      \( \mathcal{P} = \{ \, \{s,r\} : s \in \partial r \,\} \) be the set
+      of all unordered neighboring pixel pairs. The density is
+    </p>
+    $$
+    p(x) = \frac{1}{z} \exp \left\{
+      - \sum_{\{s,r\} \in \mathcal{P}} b_{s,r}\,
+        \frac{ (x_s - x_r)^2 }{2} \right\}
+      = \frac{1}{z} \exp \left\{ -\frac{1}{2} x^t B x \right\} \ ,
+    \tag{5}
+    $$
+    <p>
+      where the coefficients \(b_{s,r} > 0\) weight each pair, and \(B\) is
+      the inverse covariance matrix, with \(B_{s,r} = -b_{s,r}\) off the
+      diagonal. Because the prior depends only on differences of
+      neighboring pixels, it says nothing about the overall brightness of
+      the image. It says only that neighboring pixels should be close in
+      value.
+    </p>
+    <p>
+      Use an <b>8-point neighborhood</b>: the four nearest neighbors and
+      the four diagonal neighbors. Define the coefficients as
+    </p>
+    $$
+    b_{s,r} = \frac{ g_{s-r} }{ \sigma_x^2 } \ ,
+    \tag{6}
+    $$
+    <p>
+      where \(\sigma_x\) is the noncausal prediction standard deviation of
+      the GMRF and \(g\) is the fixed \(3 \times 3\) array of noncausal
+      prediction coefficients
+    </p>
+    <table class="kernel">
+      <tr><td>1/12</td><td>1/6</td><td>1/12</td></tr>
+      <tr><td>1/6</td><td>0</td><td>1/6</td></tr>
+      <tr><td>1/12</td><td>1/6</td><td>1/12</td></tr>
+    </table>
+    <p>
+      which is normalized so that \( \sum_s g_s = 1 \). Larger
+      \(\sigma_x\) means a weaker prior. Smaller \(\sigma_x\) means a
+      stronger prior. It is the only knob you will turn.
+    </p>
+    <p>
+      <b>Boundary condition.</b> A pair \(\{s,r\}\) is in \(\mathcal{P}\)
+      only when both pixels lie inside the image, so the prior sum in (5)
+      runs over interior pairs only. With this convention the prior term
+      and its gradient are
+    </p>
+    $$
+    \frac{1}{2} x^t B x
+      = \frac{1}{2\sigma_x^2} \sum_{\{s,r\} \in \mathcal{P}}
+        g_{s-r} (x_s - x_r)^2 \ , \qquad
+    [ B x ]_s = \frac{1}{\sigma_x^2}
+      \left( c_s x_s - \sum_{r \in \partial s} g_{s-r} x_r \right) \ ,
+    \tag{7}
+    $$
+    <p>
+      where \( c_s = \sum_{r \in \partial s} g_{s-r} \) is the sum of the
+      weights of the neighbors that exist. For an interior pixel
+      \(c_s = 1\). Along an edge or at a corner it is less. Both quantities
+      are computed with one \(3\times 3\) convolution of \(x\) using zero
+      padding, plus one \(3\times 3\) convolution of an all-ones mask to
+      get \(c_s\). This convention makes \(B\) exactly symmetric, which
+      matters for the checks in Step 6.
+    </p>
+    <p>Write these two functions.</p>
+    <div class="codeblock">
+      <button class="copy" onclick="copyCode(this)">Copy</button>
+<pre>def prior_cost(x, sigma_x):
+    """Return the prior term (1/2) x^t B x of equation (7).
+
+    x        (H, W) float64 tensor
+    sigma_x  float
+    returns  float64 scalar tensor
+    """
+
+
+def prior_grad(x, sigma_x):
+    """Return B x, the gradient of prior_cost, from equation (7).
+
+    x        (H, W) float64 tensor
+    sigma_x  float
+    returns  (H, W) float64 tensor
+    """</pre>
+    </div>
+    <p>
+      <b>Task 4a.</b> Compute the noncausal prediction error of the clean
+      image, \( e_s = x_s - \sum_{r \in \partial s} g_{s-r} x_r \), display
+      it as an image (add 0.5 and clip to \([0,1]\) for display only), and
+      report its standard deviation over the interior of the image. This
+      number is an estimate of \(\sigma_x\) for kodim23. Keep it. You will
+      compare it against the \(\sigma_x\) that gives the best restoration
+      in Step 7.
+    </p>
+    <div class="handin" id="D4">
+      <span class="tag">HAND IN &middot; D4</span>
+      <p>
+        The prediction error image, and its standard deviation over the
+        interior of the image.
+      </p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Step 5: The Cost and Gradient Descent</h3>
+    <p>
+      Substituting (1) and (5) into the definition of the MAP estimate
+      gives the cost function you will minimize:
+    </p>
+    $$
+    \hat{x} = \arg\min_{x \in \mathbb{R}^N} c(x) \ , \qquad
+    c(x) = \frac{1}{2\sigma_w^2} \| y - A x \|^2
+         + \frac{1}{2} x^t B x \ .
+    \tag{8}
+    $$
+    <p>
+      The first term is the forward model term. It pulls \(x\) toward
+      agreement with the data. The second term is the prior term. It pulls
+      \(x\) toward smoothness. The MAP estimate is the balance point
+      between them.
+    </p>
+    <p>
+      The cost (8) is quadratic, so its gradient is
+    </p>
+    $$
+    \nabla c(x) = -\frac{1}{\sigma_w^2} A^t ( y - A x ) + B x \ ,
+    \tag{9}
+    $$
+    <p>
+      and the gradient descent iteration is
+    </p>
+    $$
+    x^{(k+1)} = x^{(k)} - \alpha \, \nabla c ( x^{(k)} ) \ ,
+    \qquad x^{(0)} = y \ ,
+    \tag{10}
+    $$
+    <p>
+      where \(\alpha > 0\) is the step size. The Hessian of (8) is the
+      constant matrix \( H = \frac{1}{\sigma_w^2} A^t A + B \), and
+      gradient descent on a quadratic converges when
+      \( 0 < \alpha < 2 / \lambda_{\max}(H) \). For both problems in this
+      lab \( \lambda_{\max}(A^tA) \le 1 \), because the kernel is
+      nonnegative and sums to one, and \( \lambda_{\max}(B) \le
+      2/\sigma_x^2 \). So <b>every run in this lab must use</b>
+    </p>
+    $$
+    \alpha = \left( \frac{1}{\sigma_w^2}
+                  + \frac{2}{\sigma_x^2} \right)^{-1} \ .
+    \tag{11}
+    $$
+    <p>
+      This choice is safely inside the stability limit, and it is fixed by
+      \(\sigma_w\) and \(\sigma_x\), so all students run the same algorithm
+      and get the same numbers.
+    </p>
+    <p>Write these three functions.</p>
+    <div class="codeblock">
+      <button class="copy" onclick="copyCode(this)">Copy</button>
+<pre>def cost(x, y, a, sigma_w, sigma_x):
+    """Return the MAP cost c(x) of equation (8).
+
+    x, y     (H, W) float64 tensors
+    a        (Ka, Kb) float64 tensor, the blur kernel
+    returns  float64 scalar tensor
+    """
+
+
+def cost_grad(x, y, a, sigma_w, sigma_x):
+    """Return the gradient of the MAP cost, equation (9).
+
+    returns  (H, W) float64 tensor
+    """
+
+
+def gradient_descent(y, a, sigma_w, sigma_x, num_iters, alpha=None):
+    """Minimize the MAP cost by gradient descent, equation (10).
+
+    Starts at x = y.  Uses the step size of equation (11) when alpha
+    is None.
+
+    returns  (x_hat, cost_history), an (H, W) tensor and a list of
+             length num_iters + 1 whose first entry is c(y)
+    """</pre>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Step 6: Build the Code and Check It</h3>
+    <p>
+      Direct your AI assistant to write the bodies of the seven functions
+      whose signatures you have been given: <code>forward</code>,
+      <code>adjoint</code>, <code>prior_cost</code>,
+      <code>prior_grad</code>, <code>cost</code>, <code>cost_grad</code>,
+      and <code>gradient_descent</code>. Give it the equations, the array
+      shapes, and the boundary conditions from this page.
+    </p>
+    <div class="handin" id="D5">
+      <span class="tag">HAND IN &middot; D5</span>
+      <p>
+        The specification you gave your AI assistant, quoted. If you
+        corrected it during the build, show the correction and say what was
+        wrong.
+      </p>
+    </div>
+    <p>
+      <b>Task 6a. Check the code before you trust it.</b> You already
+      checked \(A\) and \(A^t\) in Step 3. Two checks remain, and both are
+      one line each because the interface is fixed.
+    </p>
+    <ol>
+      <li><b>Symmetry of \(B\).</b> For random \(u\) and \(v\), verify that
+          \( u^t (Bv) = v^t (Bu) \) to within round-off.</li>
+      <li><b>Gradient correctness.</b> Verify that <code>cost_grad</code>
+          agrees with the gradient of <code>cost</code> obtained from
+          <code>torch.autograd</code>, on a small random image. Report the
+          largest absolute difference.</li>
+    </ol>
+    <div class="codeblock">
+      <button class="copy" onclick="copyCode(this)">Copy</button>
+<pre>check4 = ((u * prior_grad(v, sigma_x)).sum()
+          - (v * prior_grad(u, sigma_x)).sum()).abs()
+
+z = torch.randn(32, 32, dtype=torch.float64, requires_grad=True)
+auto = torch.autograd.grad(cost(z, y_small, a, sigma_w, sigma_x), z)[0]
+check5 = (auto - cost_grad(z.detach(), y_small, a, sigma_w, sigma_x)).abs().max()</pre>
+    </div>
+    <div class="handin" id="D6">
+      <span class="tag">HAND IN &middot; D6</span>
+      <p>
+        The two numbers from Task 6a.
+      </p>
+    </div>
+    <p>
+      <b>Task 6b.</b> Show that the cost function (8) is strictly convex
+      when \(\sigma_w > 0\) and \(A = I\), and explain in one sentence why
+      that means gradient descent cannot get stuck in a local minimum that
+      is not the global minimum. Write this by hand. It is a
+      paper-and-pencil argument, not code.
+    </p>
+    <div class="handin" id="D7">
+      <span class="tag">HAND IN &middot; D7</span>
+      <p>
+        Your proof that the cost function (8) is strictly convex, and the
+        one sentence on what that means for gradient descent.
+      </p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Step 7: Denoising Experiments</h3>
+    <p>
+      Use \(A = I\), which is <code>a_identity</code> from Step 2. Form the
+      noisy image \( y = x + w \) with \( \sigma_w = 0.05 \). Do not clip
+      \(y\), because clipping breaks the forward model of (1). Clip only
+      when you display an image.
+    </p>
+    <p>
+      Run gradient descent for 500 iterations for each of the five values
+    </p>
+    $$
+    \sigma_x \in \{\, 0.01,\ 0.02,\ 0.05,\ 0.1,\ 0.5 \,\} \ ,
+    $$
+    <p>
+      using \(\sigma_w = 0.05\) and the step size \(\alpha\) from (11).
+      Produce the following, and no more:
+    </p>
+    <ol>
+      <li><b>Images.</b> The clean image \(x\), the noisy image \(y\), and
+          the five restored images \(\hat{x}\), all displayed with the same
+          gray scale over \([0,1]\).</li>
+      <li><b>Convergence.</b> For \(\sigma_x = 0.05\) only, a two-panel
+          figure: (a) \(c(x^{(k)})\) versus \(k\); (b)
+          \( c(x^{(k)}) - c(x^{(500)}) \) versus \(k\) on a log vertical
+          axis.</li>
+      <li><b>Monotonicity check.</b> Report whether the cost decreased at
+          every one of the 500 iterations, for every value of
+          \(\sigma_x\). If it did not, your step size or your gradient is
+          wrong.</li>
+      <li><b>Error table.</b> One row per \(\sigma_x\), giving \(\alpha\),
+          the final cost, and the root mean squared error
+          \( \mathrm{RMSE} = \sqrt{ \frac{1}{N} \| \hat{x} - x \|^2 } \)
+          in \([0,1]\) units. Include the RMSE of the noisy image \(y\) as
+          a reference row.</li>
+      <li><b>Timing.</b> The wall-clock time for one 500-iteration
+          run.</li>
+    </ol>
+    <div class="handin" id="D8">
+      <span class="tag">HAND IN &middot; D8</span>
+      <p>
+        All five items above: the images, the convergence figure, the
+        monotonicity check, the error table, and the timing.
+      </p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Step 8: Deconvolution Experiments</h3>
+    <p>
+      Now use the camera shake blur of Step 2, with kernel 1. Form the data
+      \( y = Ax + w \) with \( \sigma_w = 0.02 \). Blurring removes most of
+      the high frequency content, so less noise is used here than in
+      Step 7. With \(\sigma_w = 0.05\) the fine detail is not recoverable
+      at all.
+    </p>
+    <p>
+      Run gradient descent for 2000 iterations, starting at
+      \( x^{(0)} = y \), for each of the three values
+    </p>
+    $$
+    \sigma_x \in \{\, 0.01,\ 0.05,\ 0.2 \,\} \ ,
+    $$
+    <p>
+      with \(\sigma_w = 0.02\) and \(\alpha\) from (11). Produce:
+    </p>
+    <ol>
+      <li><b>Images.</b> The blurred noisy image \(y\) and the three
+          restored images \(\hat{x}\), displayed over \([0,1]\).</li>
+      <li><b>Convergence.</b> For \(\sigma_x = 0.05\) only, the same
+          two-panel cost figure required in Step 7.</li>
+      <li><b>Error table.</b> The RMSE of \(y\) and of each
+          \(\hat{x}\).</li>
+      <li><b>Iteration count.</b> For \(\sigma_x = 0.05\), report the
+          smallest \(K\) for which \( c(x^{(K)}) - c(x^{(2000)}) \) is less
+          than \( 10^{-3} \) times \( c(x^{(0)}) - c(x^{(2000)}) \). Report
+          the same number for your Step 7 denoising run at
+          \(\sigma_x = 0.05\).</li>
+      <li><b>Timing.</b> The wall-clock time for one 2000-iteration
+          run.</li>
+    </ol>
+    <div class="handin" id="D9">
+      <span class="tag">HAND IN &middot; D9</span>
+      <p>
+        All five items above for the deconvolution experiment.
+      </p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Step 9: Questions to Answer</h3>
+    <p>
+      Answer each in a few sentences, using your own images and numbers as
+      evidence. Point to the specific figure or table row you are relying
+      on.
+    </p>
+    <ol>
+      <li>Which \(\sigma_x\) gave the lowest RMSE in Step 7? How does it
+          compare with the standard deviation of the noncausal prediction
+          error you measured in Task 4a?</li>
+      <li>Describe what happens to edges and to fine texture as
+          \(\sigma_x\) decreases from 0.5 to 0.01. Name one image feature
+          in kodim23 that is visibly damaged by the strongest prior, and
+          say why a quadratic penalty on \( (x_s - x_r)^2 \) does that.</li>
+      <li>Compare the two iteration counts you reported in Step 8, item 4.
+          Deconvolution needed far more iterations than denoising at the
+          same \(\sigma_x\). Explain this in terms of the eigenvalues of
+          \( H = \frac{1}{\sigma_w^2}A^tA + B \) and the blur transfer
+          function.</li>
+      <li>Rerun one denoising case with \(\alpha\) equal to four times the
+          value in (11). Report what the cost curve does and explain it
+          using the convergence condition in Step 5. One plot is
+          enough.</li>
+      <li>The restored images are visibly smoother than the original, even
+          at the best \(\sigma_x\). What assumption in the model causes
+          this, and which chapter of the book fixes it?</li>
+    </ol>
+    <div class="handin" id="D10">
+      <span class="tag">HAND IN &middot; D10</span>
+      <p>
+        Your answers to the five questions above.
+      </p>
+    </div>
+  </div>
+
+  </div>
+</details>
+
+<details class="module">
+  <summary>Deliverables
+    <span class="note">What to submit, and where each item comes from.</span>
+  </summary>
+  <div class="modulebody">
+
+  <div class="card">
+    <h3>What to Hand In</h3>
+    <p>Submit two files through Brightspace.</p>
+    <ol>
+      <li>A report, as a single <b>PDF</b>, labeled "Lab 3", containing the
+          items listed below in this order.</li>
+      <li>Your <code>lab3.py</code>, as a plain <code>.py</code> file. Do
+          not paste the code into the report and do not send a zip
+          file.</li>
+    </ol>
+    <p>
+      Also commit your code to your <code>image-processing-labs</code>
+      repository under <code>lab3</code> and push it before you submit.
+    </p>
+    <ol class="handin-list">
+      <li><span class="dnum"></span>
+          Your name, the link to your GitHub repository, and the random
+          seed you used.</li>
+      <li><span class="dnum"><a href="#D1">D1</a></span>
+          The four images \(x\), \(Ax\), \(A^t x\), and \(Ax - A^t x\), the
+          shape and sum of the kernel, and one sentence on what the
+          difference image shows.</li>
+      <li><span class="dnum"><a href="#D2">D2</a></span>
+          The three adjoint check numbers, and one sentence on what check 3
+          would report for a symmetric kernel.</li>
+      <li><span class="dnum"><a href="#D3">D3</a></span>
+          The three memory figures for storing \(A\), with the arithmetic,
+          and two sentences on what they mean.</li>
+      <li><span class="dnum"><a href="#D4">D4</a></span>
+          The prediction error image, and its standard deviation.</li>
+      <li><span class="dnum"><a href="#D5">D5</a></span>
+          The specification you gave your AI assistant, quoted, with any
+          corrections you made during the build.</li>
+      <li><span class="dnum"><a href="#D6">D6</a></span>
+          The two code check numbers from Task 6a.</li>
+      <li><span class="dnum"><a href="#D7">D7</a></span>
+          Your proof that the cost function is strictly convex.</li>
+      <li><span class="dnum"><a href="#D8">D8</a></span>
+          All five items from the denoising experiment.</li>
+      <li><span class="dnum"><a href="#D9">D9</a></span>
+          All five items from the deconvolution experiment.</li>
+      <li><span class="dnum"><a href="#D10">D10</a></span>
+          Your answers to the five questions.</li>
+    </ol>
+    <p>
+      Concise and clear beats long.
+    </p>
+  </div>
+
+  <div class="card">
+    <p>
+      You have now solved a real inverse problem end to end: a forward
+      model, a prior model, a cost function, and an optimizer that scales
+      to full-size images. Everything that follows in this course changes
+      one of those four pieces and keeps the rest.
+    </p>
+    <p>
+      <a href="../../index.html">Back to the laboratory index</a> &middot;
+      <a href="https://engineering.purdue.edu/~bouman/ece60141/">ECE 60141 course page</a>
+    </p>
+  </div>
+
+  </div>
+</details>
+
+</div>
+
+<script>
+function copyCode(btn) {
+  var text = btn.nextElementSibling.innerText;
+  function done() {
+    var old = btn.textContent;
+    btn.textContent = "Copied";
+    setTimeout(function () { btn.textContent = old; }, 1200);
+  }
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(done);
+  } else {
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+    done();
+  }
+}
+
+function toggleAll(btn) {
+  var open = btn.textContent.indexOf("Open") === 0;
+  var list = document.querySelectorAll("details.module");
+  for (var i = 0; i < list.length; i++) { list[i].open = open; }
+  btn.textContent = open ? "Close all" : "Open all";
+}
+
+function revealHash() {
+  if (!location.hash) { return; }
+  var el = document.querySelector(location.hash);
+  if (!el) { return; }
+  var p = el.parentElement;
+  while (p) {
+    if (p.tagName === "DETAILS") { p.open = true; }
+    p = p.parentElement;
+  }
+  el.scrollIntoView();
+}
+window.addEventListener("load", revealHash);
+window.addEventListener("hashchange", revealHash);
+</script>
+
+</body>
+</html>

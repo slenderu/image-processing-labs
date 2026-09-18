@@ -1,0 +1,12 @@
+kernel shape: (19, 19)
+kernel sum:   1.000000
+/home/thuang/miniconda3/envs/labs/lib/python3.14/site-packages/torch/autograd/graph.py:979: UserWarning: CUDA initialization: The NVIDIA driver on your system is too old (found version 12060). Please update your GPU driver by downloading and installing a new version from the URL: http://www.nvidia.com/Download/index.aspx Alternatively, go to: https://pytorch.org to install a PyTorch version that has been compiled with your version of the CUDA driver. (Triggered internally at /__w/pytorch/pytorch/c10/cuda/CUDAFunctions.cpp:119.)
+  return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+check 1 (adjoint vs adjoint_autograd, max abs diff): 1.332e-15
+check 2 (transpose property, relative diff):         1.053e-15
+check 3 (forward vs adjoint, max abs diff):           1.328e+00
+N = H * W = 512 * 768 = 393216
+dense matrix memory:   N^2 * 8 bytes        = 393216^2 * 8 = 1,236,950,581,248 bytes (1.237 TB)
+sparse matrix memory:  N * nnz_per_row * 12 bytes = 393216 * 109 * 12 = 514,326,528 bytes (514.327 MB)
+forward-function memory: Ka * Kb * 8 bytes  = 19 * 19 * 8 = 2,888 bytes
+saved figure to results/step3_four_images.png

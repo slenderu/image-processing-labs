@@ -1,0 +1,29 @@
+seed = 0, device = cpu, dtype = torch.float64
+sigma_w = 0.05, num_iters = 500
+saved figure to results/step7_images.png
+saved figure to results/step7_convergence.png
+
+Monotonicity check (cost must decrease every iteration, round-off tolerance = 1e-09 * |c(y)|):
+  sigma_x = 0.01  OK  violations =   0 / 500  worst increase = -4.703e-08
+  sigma_x = 0.02  OK  violations =   0 / 500  worst increase = 1.164e-10
+  sigma_x = 0.05  OK  violations =   0 / 500  worst increase = 0.000e+00
+  sigma_x = 0.1   OK  violations =   0 / 500  worst increase = 7.276e-12
+  sigma_x = 0.5   OK  violations =   0 / 500  worst increase = 4.547e-13
+
+Error table:
+row                    alpha      final cost        RMSE
+y (noisy)                                       0.049913
+sigma_x=0.01    4.901961e-05   392998.784267    0.041034
+sigma_x=0.02    1.851852e-04   280717.389169    0.030745
+sigma_x=0.05    8.333333e-04   134814.704767    0.029713
+sigma_x=0.1     1.666667e-03    51809.598183    0.040576
+sigma_x=0.5     2.450980e-03     2550.316776    0.049421
+saved table to results/step7_rmse_table.csv
+
+Timing (wall clock, one 500-iteration gradient_descent run):
+  sigma_x = 0.01  24.305 s
+  sigma_x = 0.02  25.699 s
+  sigma_x = 0.05  24.721 s
+  sigma_x = 0.1   25.661 s
+  sigma_x = 0.5   24.113 s
+saved cost histories to results/step7_cost_histories.pt
